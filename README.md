@@ -13,7 +13,7 @@ C:\foo contains bar1.txt, bar2.txt, and bar3.txt will result in new files
 c:\foo\bar1.txt.sha256, c:\foo\bar2.txt.sha256, and c:\foo\bar3.txt.sha256.  
 #### Parameters 
 * `-Path` Path to directory containing files to be hashed; defaults to `.\`
-* * `-LogFile` Path to log file to be written; default to automatically named file
+* `-LogFile` Path to log file to be written; default to automatically named file
 in directory specified in `-Path`
 * `-Algorithm` Specifies the hashing algorithm to use; this supports any hashing
 functino supported by Get-FileHash.  Changing the algorithm will change the
