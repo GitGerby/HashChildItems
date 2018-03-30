@@ -19,7 +19,7 @@ file; the Cmdlet will also skip hashing hash files for the targeted algorithm.
 * `-LogFile` Path to log file to be written; default to automatically named file
 in directory specified in `-Path`
 * `-Algorithm` Specifies the hashing algorithm to use; this supports any hashing
-functino supported by Get-FileHash.  Changing the algorithm will change the
+function supported by Get-FileHash.  Changing the algorithm will change the
 extension of the created files as well, using `-Algorithm MD5` will create .md5
 files when generating child hashes; defaults to sha256.
 * `-Recurse` If passed specifies that Write-ChildItemHash should traverse all 
