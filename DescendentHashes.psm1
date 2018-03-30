@@ -74,7 +74,7 @@ function Write-ChildItemHash {
                  )
     Write-Verbose $($message -join "`n")
     # Log success information and run time. 
-    $message | Out-File -FilePath $LogFile -Append
+    $message -join "`n" | Out-File -FilePath $LogFile -Append
   }
   $endtime = get-date
   Write-Verbose "Total time elapsed: $($endtime - $starttime)"
