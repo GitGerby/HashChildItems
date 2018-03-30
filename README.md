@@ -1,16 +1,16 @@
 # Descendent Hashes
-This module is designed to make hash generation of many files in descendent
-directories easy to generate and verify.  This module is compatible with Powershell
-5 or later, and should work equally well on Powershell Core.  There are no platform
-specific items in this module; Windows and Posix environments should work equally
-well.
+This module is designed to generate hashes of all files in a directory and 
+optionally its descendant directories. This module is compatible with Powershell
+5 or later, and should work equally well on Powershell Core. There are no 
+platform specific items in this module; Windows and Posix environments should 
+work equally well.
 
 ## Exported Cmdlets
 ### Write-ChildItemHash
 This Cmdlet will find all child items of a specified path and write the hash of
 each child item to its own file. Calling `Write-ChildItemHash -Path C:\foo` where
 C:\foo contains bar1.txt, bar2.txt, and bar3.txt will result in new files 
-c:\foo\bar1.txt.sha256, c:\foo\bar2.txt.sha256, and c:\foo\bar3.txt.sha256.
+C:\foo\bar1.txt.sha256, C:\foo\bar2.txt.sha256, and C:\foo\bar3.txt.sha256.
 
 Write-ChildItemHash will skip hashing files for which there already exists a hash
 file; the Cmdlet will also skip hashing hash files for the targeted algorithm.
