@@ -6,9 +6,9 @@ function Write-ChildItemHash {
   Create hashes of each file found in a given path.
   
   .DESCRIPTION
-  This Cmdlet will find all child items of a specified path and write the hash of
-  each child item to its own file. Calling `Write-ChildItemHash -Path C:\foo` where
-  C:\foo contains bar1.txt, bar2.txt, and bar3.txt will result in new files 
+  This Cmdlet will find all child items of a specified path and write the hash 
+  of each child item to its own file. Calling `Write-ChildItemHash -Path C:\foo`
+  where C:\foo contains bar1.txt, bar2.txt, and bar3.txt will result in new files 
   C:\foo\bar1.txt.sha256, C:\foo\bar2.txt.sha256, and C:\foo\bar3.txt.sha256.  
   
   .PARAMETER Path
@@ -30,39 +30,53 @@ function Write-ChildItemHash {
       $Algorithm = 'sha256',
       [Switch]$Recurse = $false
   )  
+  # Normalize to lower case
   $Algorithm = $Algorithm.ToLower()
+  # Get start time for duration tracking.
   $starttime = get-date
+  # Get items to hash
   $children = Get-ChildItem -Path $Path -Recurse:$Recurse
+
+  # Iterate through child items and write out hash values.
   Foreach($child in $children) {
+    # Skip files that already have a corresponding hash file.
     Write-Debug "Analyzing: $($child.PSPath)"
     if (Test-Path "$($child.PSPath).$Algorithm"){
       Write-Debug "Existing hash for: $($child.PSPath)"
       continue
     }
+    # Skip directories.
     if ((Get-Item $child.PSPath) -is [System.IO.DirectoryInfo]) {
       Write-Debug "Directory detected: $($child.PSPath)"
       continue
     }
+    # Skip hash files.
     if ($child.Name -match "\.$Algorithm$") {
       Write-Debug "Hash file not hashed: $($child.PSPath)"
       continue
     }
+    # Get start time for individual files
     $itemstart = Get-Date
-    $hash = (Get-FileHash -Algorithm $Algorithm $child.PSPath ).hash
+    # Hash the file, output result to file.
     try {
+      $hash = (Get-FileHash -Algorithm $Algorithm $child.PSPath ).hash
       $hash | Out-File "$($child.pspath).$Algorithm"
     }
     catch {
+      # Try to log any errors
       Write-Error $_
       $_ | Out-File -FilePath $LogFile -Append
     }
+    # Build a message for logging
     $message = @("Filename: $($child.name)",
                  "Hash: $hash",
                  "Time to hash: $($(get-date) - $itemstart)"
                  )
     Write-Verbose $($message -join "`n")
+    # Log success information and run time. 
     $message | Out-File -FilePath $LogFile -Append
   }
   $endtime = get-date
-  Write-Host "Total time elapsed: $($endtime - $starttime)"
+  Write-Verbose "Total time elapsed: $($endtime - $starttime)"
+  "Total time elapsed: $($endtime - $starttime)" | Out-File -FilePath $LogFile -Append
 }
