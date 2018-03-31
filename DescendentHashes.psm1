@@ -26,7 +26,7 @@ function Write-ChildItemHash {
    [CmdletBinding()]
     param(
       $Path = '.\',
-      $LogFile = "$Path\Write-ChildItemHash.$(get-date -Format o).log",
+      $LogFile = "$((Get-Item $Path).PSPath)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
       $Algorithm = 'sha256',
       [Switch]$Recurse = $false
   )  
