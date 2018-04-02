@@ -94,7 +94,7 @@ function Compare-ChildItemHash  {
   # Normalize to lower case
   $Algorithm = $Algorithm.ToLower()
   # Get start time for duration tracking.
-  $starttime = get-date
+  $starttime = Get-Date
   # Get items to hash
   $children = Get-ChildItem -Path $Path -Recurse:$Recurse | Where-Object Name -NotLike ".$Algorithm"
 
@@ -116,7 +116,7 @@ function Compare-ChildItemHash  {
      continue
    }
  }
- $endtime = get-date
+ $endtime = Get-Date
  Write-Verbose "Total time elapsed: $($endtime - $starttime)"
  "Total time elapsed: $($endtime - $starttime)" | Out-File -FilePath $LogFile -Append
 }
