@@ -24,6 +24,7 @@ function Write-ChildItemHash {
   If specified will traverse entire directory structure rooted at -Path.
   #> 
    [CmdletBinding()]
+
     param(
       $Path = '.\',
       $LogFile = "$((Get-Item $Path).PSPath)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
@@ -84,6 +85,15 @@ function Write-ChildItemHash {
 }
 
 function Compare-ChildItemHash  {
+  <#
+  .SYNOPSIS
+  Compares hashes previously computed and stored using Write-ChildItemHash and
+  logs files whose current hash does not match their stored hash.
+  .DESCRIPTION
+
+  #>
+  [CmdletBinding()]
+
   param(
     $Path = '.\',
     $LogFile = "$((Get-Item $Path).PSPath)\Compare-ChildItemHash.$(get-date -Format FileDateTime).log",
@@ -96,13 +106,18 @@ function Compare-ChildItemHash  {
   # Get start time for duration tracking.
   $starttime = Get-Date
   # Get items to hash
-  $children = Get-ChildItem -Path $Path -Recurse:$Recurse | Where-Object Name -NotLike ".$Algorithm"
-
+  $children = Get-ChildItem -Path $Path -Recurse:$Recurse | 
+  Where-Object Name -NotLike ".$Algorithm"
+  
  # Iterate through child items and verify hash.
  foreach ($child in $children) {
+   # Only check files for which we have a stored hash.
    if (Test-Path -Path "$($child.PSPath).$Algorithm") {
+     Write-Debug "Comparing hash of $($child.Name) with hash stored in $($child.Name).$Algorithm"
+     # Retrieve stored hash and compute current hash. 
      $storedhash = Get-Content -Path "$($child.PSPath).$Algorithm"
      $hash = (Get-FileHash -Algorithm $Algorithm $child.PSPath).hash
+     # If the hash doesn't match write to log file.
      if ($originalhash -ne $hash) {
        $message = @( "Failed to validate file: $($child.Name)",
                      "Stored hash: $storedhash",
