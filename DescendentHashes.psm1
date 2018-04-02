@@ -108,17 +108,17 @@ function Compare-ChildItemHash  {
   # Get items to hash
   $children = Get-ChildItem -Path $Path -Recurse:$Recurse | 
   Where-Object Name -NotLike ".$Algorithm"
-  
+
  # Iterate through child items and verify hash.
  foreach ($child in $children) {
    # Only check files for which we have a stored hash.
    if (Test-Path -Path "$($child.PSPath).$Algorithm") {
      Write-Debug "Comparing hash of $($child.Name) with hash stored in $($child.Name).$Algorithm"
      # Retrieve stored hash and compute current hash. 
-     $storedhash = Get-Content -Path "$($child.PSPath).$Algorithm"
+     $storedhash = (Get-Content -Path "$($child.PSPath).$Algorithm")
      $hash = (Get-FileHash -Algorithm $Algorithm $child.PSPath).hash
      # If the hash doesn't match write to log file.
-     if ($originalhash -ne $hash) {
+     if ($storedhash -ne $hash) {
        $message = @( "Failed to validate file: $($child.Name)",
                      "Stored hash: $storedhash",
                      "Computed hash: $hash"
