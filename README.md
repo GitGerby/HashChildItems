@@ -24,3 +24,27 @@ extension of the created files as well, using `-Algorithm MD5` will create .md5
 files when generating child hashes; defaults to sha256.
 * `-Recurse` If passed specifies that Write-ChildItemHash should traverse all 
 descendant directories and hash all files found.
+
+### Compare-ChildItemHash
+Iterates through all children of a directory (and optionally recurses through
+child directories) validating that the current hash of a file matches the value
+stored in the associated hash file. Files that do not match their stored hash
+are written to the log file.
+
+Compare-ChildItemHash is designed to validate that files previously hashed by
+Write-ChildItemHash still match their stored hash. This can be used to validate
+that transferred files have not been manipulated in transit. Files that do not 
+have an associated hash file will be ignored. This will not detect missing files
+, nor will it detect extra files.
+
+#### Parameters
+* `-Path` Path to directory containing files to be validated; defaults to `.\`.
+* `-LogFile` Path to log file to be written; default to automatically named 
+file in directory specified in `-Path`.  This log will contain all files that do
+not match their stored hash.
+* `-Algorithm` Specifies the hashing algorithm to use; this supports any hashing
+function supported by Get-FileHash.  Changing the algorithm will change the
+extension of the hash files as well, using `-Algorithm MD5` will look for .md5
+files when validating child hashes; defaults to sha256.
+* `-Recurse` If passed specifies that Compare-ChildItemHash should traverse all 
+descendant directories and validate all files found.

@@ -90,7 +90,23 @@ function Compare-ChildItemHash  {
   Compares hashes previously computed and stored using Write-ChildItemHash and
   logs files whose current hash does not match their stored hash.
   .DESCRIPTION
+  Iterates through all children of a directory (and optionally recurses through
+  child directories) validating that the current hash of a file matches the value
+  stored in the associated hash file. Files that do not match their stored hash
+  are written to the log file.
 
+  .PARAMETER Path
+  Path to directory containing files to be validated.
+
+  .PARAMETER LogFile
+  Path to logfile to write files which do not match their stored hash to.
+
+  .PARAMETER Algorithm
+  Hashing algorithm to use for laidation; also used to detect stored hashes.
+  Defaults to sha256.
+
+  .PARAMETER Recurse
+  If specified will traverse entire directory structure rooted at -Path.
   #>
   [CmdletBinding()]
 
@@ -114,9 +130,9 @@ function Compare-ChildItemHash  {
    # Only check files for which we have a stored hash.
    if (Test-Path -Path "$($child.PSPath).$Algorithm") {
      Write-Debug "Comparing hash of $($child.Name) with hash stored in $($child.Name).$Algorithm"
-     # Retrieve stored hash and compute current hash. 
-     $storedhash = (Get-Content -Path "$($child.PSPath).$Algorithm")
-     $hash = (Get-FileHash -Algorithm $Algorithm $child.PSPath).hash
+     # Retrieve stored hash and compute current hash; normalize to lowercase.
+     $storedhash = (Get-Content -Path "$($child.PSPath).$Algorithm").ToLower()
+     $hash = (Get-FileHash -Algorithm $Algorithm $child.PSPath).hash.ToLower()
      # If the hash doesn't match write to log file.
      if ($storedhash -ne $hash) {
        $message = @( "Failed to validate file: $($child.Name)",
