@@ -5,6 +5,14 @@ optionally its descendant directories. This module is compatible with Powershell
 platform specific items in this module; Windows and Posix environments should 
 work equally well.
 
+These functions were written with bulk file transfers in mind; running
+`Write-ChildItemHash` on a path before transferring the entire directory structure
+to a remote endpoint and then validating that files transferred unmolested by
+executing `Compare-ChildItemHash` on the destination path once the transfer is
+complete.  This process would not detect additional files, nor would it detect
+files that were not transferred at all, it would validate that files that were
+transferred match their transferred hashes.
+
 ## Exported Cmdlets
 ### Write-ChildItemHash
 This Cmdlet will find all child items of a specified path and write the hash of
