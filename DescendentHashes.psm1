@@ -23,14 +23,15 @@ function Write-ChildItemHash {
   .PARAMETER Recurse
   If specified will traverse entire directory structure rooted at -Path.
   #> 
-   [CmdletBinding()]
+  [CmdletBinding()]
 
-    param(
-      $Path = '.\',
-      $LogFile = "$((Get-Item $Path).PSPath)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
-      $Algorithm = 'sha256',
-      [Switch]$Recurse = $false
+  param(
+    $Path = '.\',
+    $LogFile = "$((Get-Item $Path).PSPath)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
+    $Algorithm = 'sha256',
+    [Switch]$Recurse = $false
   )  
+  
   # Normalize to lower case
   $Algorithm = $Algorithm.ToLower()
   # Get start time for duration tracking.
