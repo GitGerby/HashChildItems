@@ -1,3 +1,4 @@
+
 # Descendent Hashes
 This module is designed to generate hashes of all files in a directory and 
 optionally its descendant directories. This module is compatible with Powershell
@@ -14,6 +15,11 @@ files that were not transferred at all, it would validate that files that were
 transferred match their transferred hashes.
 
 ## Exported Cmdlets
+- [Write-ChildItemHash](#write-childitemhash)
+  - [Parameters](#parameters)
+- [Compare-ChildItemHash](#compare-childitemhash)
+  - [Parameters](#parameters)
+
 ### Write-ChildItemHash
 This Cmdlet will find all child items of a specified path and write the hash of
 each child item to its own file. Calling `Write-ChildItemHash -Path C:\foo` where
