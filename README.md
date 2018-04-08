@@ -1,3 +1,10 @@
+- [Descendent Hashes](#descendent-hashes)
+    - [Exported Cmdlets](#exported-cmdlets)
+        - [Write-ChildItemHash](#write-childitemhash)
+            - [Parameters](#parameters)
+        - [Compare-ChildItemHash](#compare-childitemhash)
+            - [Parameters](#parameters)
+
 # Descendent Hashes
 This module is designed to generate hashes of all files in a directory and 
 optionally its descendant directories. This module is compatible with Powershell
