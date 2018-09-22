@@ -29,7 +29,8 @@ function Write-ChildItemHash {
     $Path = '.\',
     $LogFile = "$((Get-Item $Path).PSPath)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
     $Algorithm = 'sha256',
-    [Switch]$Recurse = $false
+    [Switch]$Recurse = $false,
+    $Threads = (Get-WmiObject -Class Win32_Processor).NumberOfLogicalProcessors
   )  
   
   # Normalize to lower case
@@ -57,28 +58,35 @@ function Write-ChildItemHash {
       Write-Debug "Hash file not hashed: $($child.PSPath)"
       continue
     }
-    # Get start time for individual files
-    $itemstart = Get-Date
-    # Hash the file, output result to file.
-    try {
-      $hash = (Get-FileHash -Algorithm $Algorithm $child.PSPath).hash
-      $hash | Out-File "$($child.pspath).$Algorithm"
+    Start-Job -Name $($child.name) -ArgumentList @($Algorithm,$child,$LogFile) -ScriptBlock {
+      # Get start time for individual files
+      $itemstart = Get-Date
+      # Hash the file, output result to file.
+      try {
+        $hash = (Get-FileHash -Algorithm $args[0] -Path $args[1].PSPath).hash
+        $hash | Out-File "$($args[1].pspath).$($args[0])"
+      }
+      catch {
+        # Try to log any errors
+        Write-Error $_
+        $_ | Out-File -FilePath $args[2] -Append
+      }
+      # Build a message for logging
+      $message = @("Filename: $($args[1].name) ",
+                  "Hash: $hash ",
+                  "Time to hash: $($(get-date) - $itemstart)"
+                  )
+      Write-Verbose $($message -join "`n")
+      # Log success information and run time. 
+      $message -join "`n" | Out-File -FilePath $args[2] -Append
+    } | Out-Null
+    while ((Get-Job | Where-Object State -eq 'Running').count -eq $Threads) {
+      Start-Sleep 1
     }
-    catch {
-      # Try to log any errors
-      Write-Error $_
-      $_ | Out-File -FilePath $LogFile -Append
-    }
-    # Build a message for logging
-    $message = @("Filename: $($child.name)",
-                 "Hash: $hash",
-                 "Time to hash: $($(get-date) - $itemstart)"
-                 )
-    Write-Verbose $($message -join "`n")
-    # Log success information and run time. 
-    $message -join "`n" | Out-File -FilePath $LogFile -Append
+  } 
+  while ((Get-Job | Where-Object State -eq 'Running').count -ne 0) {
+    Start-Sleep 1
   }
-  
   # Log total time taken.
   $endtime = get-date
   Write-Verbose "Total time elapsed: $($endtime - $starttime)"
