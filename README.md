@@ -15,10 +15,12 @@ files that were not transferred at all, it would validate that files that were
 transferred match their transferred hashes.
 
 ## Exported Cmdlets
-- [Write-ChildItemHash](#write-childitemhash)
-  - [Parameters](#parameters)
-- [Compare-ChildItemHash](#compare-childitemhash)
-  - [Parameters](#parameters)
+- [Descendent Hashes](#descendent-hashes)
+  - [Exported Cmdlets](#exported-cmdlets)
+    - [Write-ChildItemHash](#write-childitemhash)
+      - [Parameters](#parameters)
+    - [Compare-ChildItemHash](#compare-childitemhash)
+      - [Parameters](#parameters)
 
 ### Write-ChildItemHash
 This Cmdlet will find all child items of a specified path and write the hash of
@@ -38,6 +40,8 @@ extension of the created files as well, using `-Algorithm MD5` will create .md5
 files when generating child hashes; defaults to sha256.
 * `-Recurse` If passed specifies that Write-ChildItemHash should traverse all 
 descendant directories and hash all files found.
+* `-Threads` Number of threads to start when hashing items, if not explicitly set
+will default to the number of logical processors detected.
 
 ### Compare-ChildItemHash
 Iterates through all children of a directory (and optionally recurses through
