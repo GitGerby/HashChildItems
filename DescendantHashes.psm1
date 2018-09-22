@@ -81,6 +81,8 @@ function Write-ChildItemHash {
       $message -join "`n" | Out-File -FilePath $args[2] -Append
     } | Out-Null
     while ((Get-Job | Where-Object State -eq 'Running').count -eq $Threads) {
+      Get-Job | Where-Object State -ne 'Running' | Receive-Job
+      Get-Job | Where-Object State -ne 'Running' | Remove-Job
       Start-Sleep 1
     }
   } 
