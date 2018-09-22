@@ -43,19 +43,19 @@ function Write-ChildItemHash {
   # Iterate through child items and write out hash values.
   Foreach($child in $children) {
     # Skip files that already have a corresponding hash file.
-    Write-Debug "Analyzing: $($child.PSPath)"
+    Write-Verbose "Analyzing: $($child.PSPath)"
     if (Test-Path "$($child.PSPath).$Algorithm"){
-      Write-Debug "Existing hash for: $($child.PSPath)"
+      Write-Verbose "Existing hash for: $($child.PSPath)"
       continue
     }
     # Skip directories.
     if ((Get-Item $child.PSPath) -is [System.IO.DirectoryInfo]) {
-      Write-Debug "Directory detected: $($child.PSPath)"
+      Write-Verbose "Directory detected: $($child.PSPath)"
       continue
     }
     # Skip hash files.
     if ($child.Name -match "\.$Algorithm$") {
-      Write-Debug "Hash file not hashed: $($child.PSPath)"
+      Write-Verbose "Hash file not hashed: $($child.PSPath)"
       continue
     }
     Start-Job -Name $($child.name) -ArgumentList @($Algorithm,$child,$LogFile) -ScriptBlock {
@@ -138,7 +138,7 @@ function Compare-ChildItemHash  {
  foreach ($child in $children) {
    # Only check files for which we have a stored hash.
    if (Test-Path -Path "$($child.PSPath).$Algorithm") {
-     Write-Debug "Comparing hash of $($child.Name) with hash stored in $($child.Name).$Algorithm"
+     Write-Verbose "Comparing hash of $($child.Name) with hash stored in $($child.Name).$Algorithm"
      # Retrieve stored hash and compute current hash; normalize to lowercase.
      $storedhash = (Get-Content -Path "$($child.PSPath).$Algorithm").ToLower()
      $hash = (Get-FileHash -Algorithm $Algorithm $child.PSPath).hash.ToLower()
