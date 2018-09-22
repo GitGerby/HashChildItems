@@ -29,7 +29,8 @@ function Write-ChildItemHash {
     $Path = '.\',
     $LogFile = "$((Get-Item $Path).PSPath)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
     $Algorithm = 'sha256',
-    [Switch]$Recurse = $false
+    [Switch]$Recurse = $false,
+    $Threads = (Get-WmiObject -Class Win32_Processor).NumberOfLogicalProcessors
   )  
   
   # Normalize to lower case
@@ -42,43 +43,50 @@ function Write-ChildItemHash {
   # Iterate through child items and write out hash values.
   Foreach($child in $children) {
     # Skip files that already have a corresponding hash file.
-    Write-Debug "Analyzing: $($child.PSPath)"
+    Write-Verbose "Analyzing: $($child.PSPath)"
     if (Test-Path "$($child.PSPath).$Algorithm"){
-      Write-Debug "Existing hash for: $($child.PSPath)"
+      Write-Verbose "Existing hash for: $($child.PSPath)"
       continue
     }
     # Skip directories.
     if ((Get-Item $child.PSPath) -is [System.IO.DirectoryInfo]) {
-      Write-Debug "Directory detected: $($child.PSPath)"
+      Write-Verbose "Directory detected: $($child.PSPath)"
       continue
     }
     # Skip hash files.
     if ($child.Name -match "\.$Algorithm$") {
-      Write-Debug "Hash file not hashed: $($child.PSPath)"
+      Write-Verbose "Hash file not hashed: $($child.PSPath)"
       continue
     }
-    # Get start time for individual files
-    $itemstart = Get-Date
-    # Hash the file, output result to file.
-    try {
-      $hash = (Get-FileHash -Algorithm $Algorithm $child.PSPath).hash
-      $hash | Out-File "$($child.pspath).$Algorithm"
+    Start-Job -Name $($child.name) -ArgumentList @($Algorithm,$child,$LogFile) -ScriptBlock {
+      # Get start time for individual files
+      $itemstart = Get-Date
+      # Hash the file, output result to file.
+      try {
+        $hash = (Get-FileHash -Algorithm $args[0] -Path $args[1].PSPath).hash
+        $hash | Out-File "$($args[1].pspath).$($args[0])"
+      }
+      catch {
+        # Try to log any errors
+        Write-Error $_
+        $_ | Out-File -FilePath $args[2] -Append
+      }
+      # Build a message for logging
+      $message = @("Filename: $($args[1].name) ",
+                  "Hash: $hash ",
+                  "Time to hash: $($(get-date) - $itemstart)"
+                  )
+      Write-Verbose $($message -join "`n")
+      # Log success information and run time. 
+      $message -join "`n" | Out-File -FilePath $args[2] -Append
+    } | Out-Null
+    while ((Get-Job | Where-Object State -eq 'Running').count -eq $Threads) {
+      Start-Sleep 1
     }
-    catch {
-      # Try to log any errors
-      Write-Error $_
-      $_ | Out-File -FilePath $LogFile -Append
-    }
-    # Build a message for logging
-    $message = @("Filename: $($child.name)",
-                 "Hash: $hash",
-                 "Time to hash: $($(get-date) - $itemstart)"
-                 )
-    Write-Verbose $($message -join "`n")
-    # Log success information and run time. 
-    $message -join "`n" | Out-File -FilePath $LogFile -Append
+  } 
+  while ((Get-Job | Where-Object State -eq 'Running').count -ne 0) {
+    Start-Sleep 1
   }
-  
   # Log total time taken.
   $endtime = get-date
   Write-Verbose "Total time elapsed: $($endtime - $starttime)"
@@ -130,7 +138,7 @@ function Compare-ChildItemHash  {
  foreach ($child in $children) {
    # Only check files for which we have a stored hash.
    if (Test-Path -Path "$($child.PSPath).$Algorithm") {
-     Write-Debug "Comparing hash of $($child.Name) with hash stored in $($child.Name).$Algorithm"
+     Write-Verbose "Comparing hash of $($child.Name) with hash stored in $($child.Name).$Algorithm"
      # Retrieve stored hash and compute current hash; normalize to lowercase.
      $storedhash = (Get-Content -Path "$($child.PSPath).$Algorithm").ToLower()
      $hash = (Get-FileHash -Algorithm $Algorithm $child.PSPath).hash.ToLower()
