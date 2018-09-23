@@ -119,9 +119,13 @@ function Write-ChildItemHash {
   while ((Get-Job | Where-Object State -eq 'Running').count -ne 0) {
     Write-Progress -Activity 'Hashing Files'`
       -Status "$($(Get-Job | Where-Object State -eq 'Running').Name)"`
-      -PercentComplete ($($(Get-Job | Where-Object State -eq 'Completed').count / $tohash.count) * 100)
+      -PercentComplete ($($(Get-Job | Where-Object State -eq 'Completed').count / $tohash.count) * 100)`
     Start-Sleep 1
   }
+
+  # Clean up jobs
+  Get-Job | Remove-Job
+  
   # Log total time taken.
   $endtime = get-date
   Write-Verbose "Total time elapsed: $($endtime - $starttime)"
