@@ -1,5 +1,17 @@
 #Requires -Version 5
 
+function Get-Threads {
+  [CmdletBinding()]
+  param (
+  )
+  try {
+    (Get-CimInstance -ClassName CIM_Processor -ErrorAction SilentlyContinue).NumberOfLogicalProcessors
+  }
+  catch {
+    return 1
+  }
+}
+
 function Write-ChildItemHash {
   <#
   .SYNOPSIS
@@ -25,25 +37,31 @@ function Write-ChildItemHash {
   #> 
   [CmdletBinding()]
 
-  param(
-    $Path = '.\',
-    $LogFile = "$((Get-Item $Path).PSPath)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
+  param (
+    $Path = (Get-Location),
+    $LogFile = "$($Path.Path)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
     $Algorithm = 'sha256',
     [Switch]$Recurse = $false,
-    $Threads = try {
-      (Get-CimInstance -ClassName CIM_Processor).NumberOfLogicalProcessors
-    }
-    Catch {
-      1
-    }
+    $Threads = (Get-Threads)
   )  
   
+  Write-Verbose "Running with $Threads threads."
+
   # Normalize to lower case
   $Algorithm = $Algorithm.ToLower()
   # Get start time for duration tracking.
   $starttime = get-date
   # Get items to hash
   $children = Get-ChildItem -Path $Path -Recurse:$Recurse
+
+  # Stage log file
+  if (Test-Path $LogFile) {
+    Write-Verbose "Log file found at: $LogFile"
+  }
+  else {
+    Write-Verbose "Creating log file $LogFile"
+    New-Item -Path $LogFile -ItemType File -Force -Confirm:$false | Out-Null
+  }
 
   # Iterate through child items and write out hash values.
   Foreach($child in $children) {
@@ -74,7 +92,7 @@ function Write-ChildItemHash {
       catch {
         # Try to log any errors
         Write-Error $_
-        $_ | Out-File -FilePath $args[2] -Append
+        $_ | Out-File  $args[2] -Append
       }
       # Build a message for logging
       $message = @("Filename: $($args[1].name) ",
@@ -97,7 +115,7 @@ function Write-ChildItemHash {
   # Log total time taken.
   $endtime = get-date
   Write-Verbose "Total time elapsed: $($endtime - $starttime)"
-  "Total time elapsed: $($endtime - $starttime)" | Out-File -FilePath $LogFile -Append
+  "Total time elapsed: $($endtime - $starttime)" | Out-File -Force -FilePath $LogFile -Append
 }
 
 function Compare-ChildItemHash  {
@@ -127,8 +145,8 @@ function Compare-ChildItemHash  {
   [CmdletBinding()]
 
   param(
-    $Path = '.\',
-    $LogFile = "$((Get-Item $Path).PSPath)\Compare-ChildItemHash.$(get-date -Format FileDateTime).log",
+    $Path = (Get-Location),
+    $LogFile = "$($Path.Path)\Compare-ChildItemHash.$(get-date -Format FileDateTime).log",
     $Algorithm = 'sha256',
     [Switch]$Recurse = $false
   )
@@ -155,7 +173,7 @@ function Compare-ChildItemHash  {
                      "Stored hash: $storedhash",
                      "Computed hash: $hash"
        )
-       $message -join "`n" | Out-File -FilePath $LogFile -Append
+       $message -join "`n" | Out-File -Force -FilePath $LogFile -Append
        Write-Verbose $($message -join "`n")
      }
    }
@@ -165,5 +183,5 @@ function Compare-ChildItemHash  {
  }
  $endtime = Get-Date
  Write-Verbose "Total time elapsed: $($endtime - $starttime)"
- "Total time elapsed: $($endtime - $starttime)" | Out-File -FilePath $LogFile -Append
+ "Total time elapsed: $($endtime - $starttime)" | Out-File -Force -FilePath $LogFile -Append
 }

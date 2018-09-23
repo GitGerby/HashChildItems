@@ -41,7 +41,8 @@ files when generating child hashes; defaults to sha256.
 * `-Recurse` If passed specifies that Write-ChildItemHash should traverse all 
 descendant directories and hash all files found.
 * `-Threads` Number of threads to start when hashing items, if not explicitly set
-will default to the number of logical processors detected.
+will default to the number of logical processors detected when run under Powershell
+for Windows or will default to 1 when run under Powershell Core.
 
 ### Compare-ChildItemHash
 Iterates through all children of a directory (and optionally recurses through
