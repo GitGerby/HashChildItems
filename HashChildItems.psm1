@@ -30,14 +30,14 @@ function Write-ChildItemHash {
     $LogFile = "$((Get-Item $Path).PSPath)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
     $Algorithm = 'sha256',
     [Switch]$Recurse = $false,
-    $Threads = try {
-      (Get-CimInstance -ClassName CIM_Processor).NumberOfLogicalProcessors
-    }
-    Catch {
-      1
-    }
+    $Threads = (Get-CimInstance -ClassName CIM_Processor -ErrorAction SilentlyContinue).NumberOfLogicalProcessors
   )  
   
+  # If we failed to detect the number of logical cores use 1 thread.
+  if ($Threads = $null) {
+    $Threads = 1
+  }
+
   # Normalize to lower case
   $Algorithm = $Algorithm.ToLower()
   # Get start time for duration tracking.
