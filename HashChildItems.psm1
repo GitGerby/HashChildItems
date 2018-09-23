@@ -42,7 +42,8 @@ function Write-ChildItemHash {
     $LogFile = "$($Path)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
     $Algorithm = 'sha256',
     [Switch]$Recurse = $false,
-    $Threads = (Get-Threads)
+    $Threads = (Get-Threads),
+    [Switch]$Force = $false
   )  
   
   Write-Verbose "Running with $Threads threads."
@@ -67,7 +68,7 @@ function Write-ChildItemHash {
   Foreach($child in $children) {
     # Skip files that already have a corresponding hash file.
     Write-Verbose "Analyzing: $($child.PSPath)"
-    if (Test-Path "$($child.PSPath).$Algorithm"){
+    if ((Test-Path "$($child.PSPath).$Algorithm") -and (-not ($Force))){
       Write-Verbose "Existing hash for: $($child.PSPath)"
       continue
     }
