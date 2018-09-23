@@ -4,10 +4,10 @@ function Get-Threads {
   [CmdletBinding()]
   param (
   )
-  if ($IsWindows) {
-   return (Get-CimInstance -ClassName CIM_Processor -ErrorAction SilentlyContinue).NumberOfLogicalProcessors
+  try {
+    (Get-CimInstance -ClassName CIM_Processor -ErrorAction SilentlyContinue).NumberOfLogicalProcessors
   }
-  else {
+  catch {
     return 1
   }
 }
@@ -45,10 +45,7 @@ function Write-ChildItemHash {
     $Threads = (Get-Threads)
   )  
   
-  # If we failed to detect the number of logical cores use 1 thread.
-  if ($Threads = $null) {
-    $Threads = 1
-  }
+  Write-Verbose "Running with $Threads threads."
 
   # Normalize to lower case
   $Algorithm = $Algorithm.ToLower()
