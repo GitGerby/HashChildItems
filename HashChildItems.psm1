@@ -31,7 +31,7 @@ function Write-ChildItemHash {
     $Algorithm = 'sha256',
     [Switch]$Recurse = $false,
     $Threads = try {
-      (Get-WmiObject -Class Win32_Processor).NumberOfLogicalProcessors
+      (Get-CimInstance -ClassName CIM_Processor).NumberOfLogicalProcessors
     }
     Catch {
       1
