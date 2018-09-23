@@ -42,7 +42,8 @@ function Write-ChildItemHash {
     $LogFile = "$($Path)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
     $Algorithm = 'sha256',
     [Switch]$Recurse = $false,
-    $Threads = (Get-Threads)
+    $Threads = (Get-Threads),
+    [Switch]$Force = $false
   )  
   
   Write-Verbose "Running with $Threads threads."
@@ -63,11 +64,12 @@ function Write-ChildItemHash {
     New-Item -Path $LogFile -ItemType File -Force -Confirm:$false | Out-Null
   }
 
-  # Iterate through child items and write out hash values.
+  $tohash = @()
+  # Iterate through child items determine files to hash.
   Foreach($child in $children) {
     # Skip files that already have a corresponding hash file.
     Write-Verbose "Analyzing: $($child.PSPath)"
-    if (Test-Path "$($child.PSPath).$Algorithm"){
+    if ((Test-Path "$($child.PSPath).$Algorithm") -and (-not ($Force))){
       Write-Verbose "Existing hash for: $($child.PSPath)"
       continue
     }
@@ -81,7 +83,18 @@ function Write-ChildItemHash {
       Write-Verbose "Hash file not hashed: $($child.PSPath)"
       continue
     }
-    Start-Job -Name $($child.name) -ArgumentList @($Algorithm,$child,$LogFile) -ScriptBlock {
+    $tohash += $child
+  }
+
+  foreach ($file in $tohash) {
+    while ((Get-Job | Where-Object State -eq 'Running').count -eq $Threads) {
+      Write-Progress -Activity 'Hashing Files'`
+        -Status "$($(Get-Job | Where-Object State -eq 'Running').Name)"`
+        -PercentComplete ($($(Get-Job | Where-Object State -eq 'Completed').count / $tohash.count) * 100)
+      Start-Sleep 1
+    }
+    Write-Verbose "Launching thread for $($file.name)"
+    Start-Job -Name $($file.name) -ArgumentList @($Algorithm,$file,$LogFile) -ScriptBlock {
       # Get start time for individual files
       $itemstart = Get-Date
       # Hash the file, output result to file.
@@ -99,17 +112,14 @@ function Write-ChildItemHash {
                   "Hash: $hash ",
                   "Time to hash: $($(get-date) - $itemstart)"
                   )
-      Write-Verbose $($message -join "`n")
       # Log success information and run time. 
       $message -join "`n" | Out-File -FilePath $args[2] -Append
     } | Out-Null
-    while ((Get-Job | Where-Object State -eq 'Running').count -eq $Threads) {
-      Get-Job | Where-Object State -ne 'Running' | Receive-Job
-      Get-Job | Where-Object State -ne 'Running' | Remove-Job
-      Start-Sleep 1
-    }
   } 
   while ((Get-Job | Where-Object State -eq 'Running').count -ne 0) {
+    Write-Progress -Activity 'Hashing Files'`
+      -Status "$($(Get-Job | Where-Object State -eq 'Running').Name)"`
+      -PercentComplete ($($(Get-Job | Where-Object State -eq 'Completed').count / $tohash.count) * 100)
     Start-Sleep 1
   }
   # Log total time taken.

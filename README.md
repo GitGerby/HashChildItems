@@ -43,6 +43,7 @@ descendant directories and hash all files found.
 * `-Threads` Number of threads to start when hashing items, if not explicitly set
 will default to the number of logical processors detected when run under Powershell
 for Windows or will default to 1 when run under Powershell Core.
+* `-Force` Force hashing of files and over write any existing hash on disk.
 
 ### Compare-ChildItemHash
 Iterates through all children of a directory (and optionally recurses through
