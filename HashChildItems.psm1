@@ -100,7 +100,6 @@ function Write-ChildItemHash {
                   "Hash: $hash ",
                   "Time to hash: $($(get-date) - $itemstart)"
                   )
-      Write-Verbose $($message -join "`n")
       # Log success information and run time. 
       $message -join "`n" | Out-File -FilePath $args[2] -Append
     } | Out-Null
