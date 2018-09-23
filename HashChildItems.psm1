@@ -30,7 +30,12 @@ function Write-ChildItemHash {
     $LogFile = "$((Get-Item $Path).PSPath)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
     $Algorithm = 'sha256',
     [Switch]$Recurse = $false,
-    $Threads = (Get-WmiObject -Class Win32_Processor).NumberOfLogicalProcessors
+    $Threads = try {
+      (Get-WmiObject -Class Win32_Processor).NumberOfLogicalProcessors
+    }
+    Catch {
+      1
+    }
   )  
   
   # Normalize to lower case
