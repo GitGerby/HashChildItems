@@ -47,6 +47,14 @@ function Write-ChildItemHash {
   
   Write-Verbose "Running with $Threads threads."
 
+  if (Test-Path $LogFile) {
+    Write-Verbose "Log file found at: $LogFile"
+  }
+  else {
+    Write-Verbose "Creating log file $LogFile"
+    New-Item $LogFile
+  }
+
   # Normalize to lower case
   $Algorithm = $Algorithm.ToLower()
   # Get start time for duration tracking.
