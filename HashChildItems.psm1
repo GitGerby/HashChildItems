@@ -1,5 +1,17 @@
 #Requires -Version 5
 
+function Get-Threads {
+  [CmdletBinding()]
+  param (
+  )
+  if ($IsWindows) {
+   return (Get-CimInstance -ClassName CIM_Processor -ErrorAction SilentlyContinue).NumberOfLogicalProcessors
+  }
+  else {
+    return 1
+  }
+}
+
 function Write-ChildItemHash {
   <#
   .SYNOPSIS
@@ -25,12 +37,12 @@ function Write-ChildItemHash {
   #> 
   [CmdletBinding()]
 
-  param(
+  param (
     $Path = '.\',
     $LogFile = "$((Get-Item $Path).PSPath)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
     $Algorithm = 'sha256',
     [Switch]$Recurse = $false,
-    $Threads = (Get-CimInstance -ClassName CIM_Processor -ErrorAction SilentlyContinue).NumberOfLogicalProcessors
+    $Threads = (Get-Threads)
   )  
   
   # If we failed to detect the number of logical cores use 1 thread.
