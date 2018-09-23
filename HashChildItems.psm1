@@ -38,8 +38,8 @@ function Write-ChildItemHash {
   [CmdletBinding()]
 
   param (
-    $Path = (Get-Location),
-    $LogFile = "$($Path.Path)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
+    $Path = ((Get-Location).Path),
+    $LogFile = "$($Path)\Write-ChildItemHash.$(get-date -Format FileDateTime).log",
     $Algorithm = 'sha256',
     [Switch]$Recurse = $false,
     $Threads = (Get-Threads)
@@ -145,8 +145,8 @@ function Compare-ChildItemHash  {
   [CmdletBinding()]
 
   param(
-    $Path = (Get-Location),
-    $LogFile = "$($Path.Path)\Compare-ChildItemHash.$(get-date -Format FileDateTime).log",
+    $Path = ((Get-Location).Path),
+    $LogFile = "$($Path)\Compare-ChildItemHash.$(get-date -Format FileDateTime).log",
     $Algorithm = 'sha256',
     [Switch]$Recurse = $false
   )
