@@ -115,6 +115,11 @@ function Write-ChildItemHash {
       # Log success information and run time. 
       $message -join "`n" | Out-File -FilePath $args[2] -Append
     } | Out-Null
+
+    Write-Progress -Activity 'Hashing Files'`
+      -Status "$($(Get-Job | Where-Object State -eq 'Running').Name)"`
+      -PercentComplete ($($(Get-Job | Where-Object State -eq 'Completed').count / $tohash.count) * 100)
+
   } 
   while ((Get-Job | Where-Object State -eq 'Running').count -ne 0) {
     Write-Progress -Activity 'Hashing Files'`
